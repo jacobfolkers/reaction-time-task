@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Reaction Time Experiment&lt;/title&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"&gt;&lt;/script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body, html { margin: 0; padding: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; height: 100%; background-color: #f8f9fa; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#welcome-screen, #results-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.hidden { display: none !important; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input { padding: 12px; font-size: 16px; border: 2px solid #dee2e6; border-radius: 8px; margin-bottom: 10px; width: 250px; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>button { padding: 12px 30px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#circle { position: absolute; width: 100px; height: 100px; background-color: #ff4757; border-radius: 50%; display: none; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>#chart-container { width: 80%; max-width: 800px; margin-top: 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="welcome-screen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Reaction Time Task&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="text" id="participant-id" placeholder="Participant ID"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button id="start-btn"&gt;Start Task&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="results-screen" class="hidden"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;h2&gt;Your Results&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;p id="stats-summary"&gt;&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div id="chart-container"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;canvas id="rtChart"&gt;&lt;/canvas&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;br&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button onclick="location.reload()"&gt;Restart&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="circle"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiU03xHWGiwtL7HFd_BYW0eYtna3jeUVtjzyFHja_nD4CCy6_Fs7ZBb903xNUSlb76/exec";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const TOTAL_TRIALS = 10;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let participantId = "";</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let trialsCompleted = 0;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let reactionTimes = [];</p>
+<p class="p1"><span class="Apple-converted-space">        </span>let startTime = 0;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>const welcomeScreen = document.getElementById('welcome-screen');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const resultsScreen = document.getElementById('results-screen');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>const circle = document.getElementById('circle');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('start-btn').addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>participantId = document.getElementById('participant-id').value.trim() || "USER-" + Math.random().toString(36).substring(2, 8).toUpperCase();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>welcomeScreen.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>startExperiment();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function startExperiment() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>trialsCompleted = 0;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>reactionTimes = [];</p>
+<p class="p1"><span class="Apple-converted-space">            </span>nextTrial();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function nextTrial() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if (trialsCompleted &gt;= TOTAL_TRIALS) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>submitAndCompare();</p>
+<p class="p1"><span class="Apple-converted-space">                </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>circle.style.display = 'none';</p>
+<p class="p1"><span class="Apple-converted-space">            </span>setTimeout(() =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>circle.style.left = `${Math.random() * (window.innerWidth - 100)}px`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>circle.style.top = `${Math.random() * (window.innerHeight - 100)}px`;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>circle.style.display = 'block';</p>
+<p class="p1"><span class="Apple-converted-space">                </span>startTime = performance.now();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}, 500);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>circle.addEventListener('mousedown', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>reactionTimes.push(Math.round(performance.now() - startTime));</p>
+<p class="p1"><span class="Apple-converted-space">            </span>trialsCompleted++;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>nextTrial();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>async function submitAndCompare() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>circle.classList.add('hidden');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const userAverage = reactionTimes.reduce((a, b) =&gt; a + b, 0) / reactionTimes.length;</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('stats-summary').innerText = `Your Average: ${Math.round(userAverage)}ms. Fetching global data...`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>resultsScreen.classList.remove('hidden');</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">            </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>// 1. Submit current results</p>
+<p class="p1"><span class="Apple-converted-space">                </span>await fetch(WEB_APP_URL, {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>method: 'POST',</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>mode: 'no-cors',</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>body: JSON.stringify({ participantId, data: reactionTimes, average: userAverage })</p>
+<p class="p1"><span class="Apple-converted-space">                </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">                </span>// 2. GET historical results</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const response = await fetch(WEB_APP_URL);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>const historicalData = await response.json(); // Assumes Web App returns a flat array of all RTs</p>
+<p class="p2"><span class="Apple-converted-space">                </span></p>
+<p class="p1"><span class="Apple-converted-space">                </span>renderChart(historicalData, userAverage);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('stats-summary').innerText = `Your Average: ${Math.round(userAverage)}ms`;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>} catch (e) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>console.error("Data sync failed", e);</p>
+<p class="p1"><span class="Apple-converted-space">                </span>// Fallback: render chart with just user data if GET fails</p>
+<p class="p1"><span class="Apple-converted-space">                </span>renderChart(reactionTimes, userAverage);</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>function renderChart(allData, userAvg) {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const ctx = document.getElementById('rtChart').getContext('2d');</p>
+<p class="p2"><span class="Apple-converted-space">            </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>new Chart(ctx, {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>type: 'bar',</p>
+<p class="p1"><span class="Apple-converted-space">                </span>data: {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>labels: allData.map((_, i) =&gt; i), // Simple histogram bins</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>datasets: [{</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>label: 'All Participants RTs (ms)',</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>data: allData.sort((a, b) =&gt; a - b),</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>backgroundColor: 'rgba(0, 123, 255, 0.5)',</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}]</p>
+<p class="p1"><span class="Apple-converted-space">                </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                </span>options: {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>responsive: true,</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>plugins: {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>annotation: {</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>annotations: {</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>line1: {</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>type: 'line',</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>xMin: allData.findIndex(val =&gt; val &gt;= userAvg), // Rough placement on sorted data</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>xMax: allData.findIndex(val =&gt; val &gt;= userAvg),</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>borderColor: 'red',</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>borderWidth: 4,</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>label: {</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>display: true,</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>content: `You: ${Math.round(userAvg)}ms`,</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>position: 'start'</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>});</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
